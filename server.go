@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -39,28 +39,33 @@ func StartServer(ip, port string) error {
 		clients.connections = append(clients.connections, conn)
 		clients.mu.Unlock()
 
-		go handleClient(conn)
+		go handleClient(conn, &clients)
 	}
 }
 
-func handleClient(conn net.Conn) {
+func handleClient(conn net.Conn, clients *allClients) {
 	defer conn.Close()
 
-	var msg Message
-	scanner := bufio.NewScanner(conn)
-	for scanner.Scan() {
-		jsonData := scanner.Text()
-
-		err := json.Unmarshal([]byte(jsonData), &msg)
+	reader := bufio.NewReader(conn)
+	for {
+		msg, err := reader.ReadBytes('\n')
 		if err != nil {
+			if err == io.EOF {
+				return
+			}
+
 			fmt.Println(err)
-			return
+			continue
 		}
 
-		handleMessage(msg)
+		handleMessage(msg, clients)
 	}
 }
 
-func handleMessage(msg Message) {
-	fmt.Printf("%v: %v\n", msg.Name, msg.Message)
+func handleMessage(msg []byte, clients *allClients) {
+	clients.mu.Lock()
+	for _, conn := range clients.connections {
+		conn.Write(msg)
+	}
+	clients.mu.Unlock()
 }

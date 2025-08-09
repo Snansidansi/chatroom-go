@@ -40,10 +40,7 @@ func runClient() {
 		os.Exit(1)
 	}
 
-	for {
-		fmt.Printf("%s: ", client.name)
-		scanner.Scan()
-
+	for scanner.Scan() {
 		err := client.sentMessage(scanner.Text())
 		if err != nil {
 			fmt.Println(err)
