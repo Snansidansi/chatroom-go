@@ -1,28 +1,55 @@
 package main
 
 import (
-	"time"
+	"encoding/json"
+	"errors"
+	"net"
 )
 
-type Client struct {
-	name              string
-	joinTime          time.Time
-	ipWithPort        string
-	countMessagesSent int
+type client struct {
+	name string
+	conn net.Conn
 }
 
-func NewClient(name string) Client {
-	client := Client{
+type Message struct {
+	Name    string
+	Message string
+}
+
+func NewClient(name string) client {
+	client := client{
 		name: name,
 	}
 
 	return client
 }
 
-func (c *Client) connect(ipWithPort string) error {
-	c.ipWithPort = ipWithPort
-	c.joinTime = time.Now()
+func (c *client) connect(ipWithPort string) error {
+	conn, err := net.Dial("tcp", ipWithPort)
+	if err != nil {
+		return err
+	}
 
-	// Connect to server
+	c.conn = conn
 	return nil
+}
+
+func (c *client) sentMessage(msg string) error {
+	if c.conn == nil {
+		return errors.New("Client is not connected to the server!")
+	}
+
+	data := Message{
+		Name:    c.name,
+		Message: msg,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	jsonData = append(jsonData, '\n')
+
+	_, err = c.conn.Write(jsonData)
+	return err
 }

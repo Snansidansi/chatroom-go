@@ -39,6 +39,17 @@ func runClient() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	for {
+		fmt.Printf("%s: ", client.name)
+		scanner.Scan()
+
+		err := client.sentMessage(scanner.Text())
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
 }
 
 func runServer() {
