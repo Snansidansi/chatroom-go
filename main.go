@@ -15,7 +15,7 @@ func main() {
 	}
 
 	if len(args) == 2 && args[1] == "server" {
-		println("server")
+		runServer()
 		return
 	}
 
@@ -38,5 +38,24 @@ func runClient() {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+}
+
+func runServer() {
+	fmt.Print("Please enter the server ip (nothing for 0.0.0.0): ")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+
+	ip := scanner.Text()
+	if ip == "" {
+		ip = "0.0.0.0"
+	}
+
+	fmt.Print("Please enter a port: ")
+	scanner.Scan()
+	port := scanner.Text()
+
+	if err := StartServer(ip, port); err != nil {
+		fmt.Println(err)
 	}
 }
