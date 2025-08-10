@@ -52,6 +52,12 @@ function App() {
     userNameRef.current = userName;
 
     chatWSRef.current = new WebSocket(`ws://${serverIpRef.current}/chat`);
+
+    chatWSRef.current.onerror = () => {
+      setConnected(false);
+      return;
+    };
+
     chatWSRef.current.onmessage = (event) => {
       const msg: Msg = JSON.parse(event.data);
 
