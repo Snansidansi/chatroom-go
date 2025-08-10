@@ -63,7 +63,5 @@ func runServer() {
 	scanner.Scan()
 	port := scanner.Text()
 
-	if err := StartServer(ip, port); err != nil {
-		fmt.Println(err)
-	}
+	StartServer(port)
 }

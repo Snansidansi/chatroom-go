@@ -1,18 +1,18 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/fnv"
-	"net"
+	"net/url"
 	"slices"
+
+	"github.com/gorilla/websocket"
 )
 
 type client struct {
 	name string
-	conn net.Conn
+	conn *websocket.Conn
 }
 
 type Message struct {
@@ -29,10 +29,14 @@ func NewClient(name string) client {
 }
 
 func (c *client) connect(ipWithPort string) error {
-	conn, err := net.Dial("tcp", ipWithPort)
+	u := url.URL{Scheme: "ws", Host: ipWithPort, Path: "/chat"}
+
+	fmt.Printf("\nConnecting to: %v\n", u.String())
+	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Connection successful\n\n")
 
 	c.conn = conn
 	go c.handleIncommingMessages()
@@ -41,16 +45,12 @@ func (c *client) connect(ipWithPort string) error {
 }
 
 func (c *client) handleIncommingMessages() {
-	scanner := bufio.NewScanner(c.conn)
 	var msg Message
 
-	for scanner.Scan() {
-		data := scanner.Bytes()
-
-		err := json.Unmarshal(data, &msg)
+	for {
+		err := c.conn.ReadJSON(&msg)
 		if err != nil {
 			fmt.Println(err)
-			continue
 		}
 
 		if msg.Name != c.name {
@@ -87,12 +87,6 @@ func (c *client) sentMessage(msg string) error {
 		Message: msg,
 	}
 
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-	jsonData = append(jsonData, '\n')
-
-	_, err = c.conn.Write(jsonData)
+	err := c.conn.WriteJSON(data)
 	return err
 }

@@ -1,82 +1,80 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"net"
+	"net/http"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 type allClients struct {
-	connections map[uint]net.Conn
+	connections map[uint]*websocket.Conn
 	mu          sync.Mutex
 	index       uint
 }
 
-func StartServer(ip, port string) error {
-	fullAddress := ip + ":" + port
-	listener, err := net.Listen("tcp", fullAddress)
-	if err != nil {
-		return err
-	}
-	defer listener.Close()
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
 
-	fmt.Printf("Server is listening on: %s\n", fullAddress)
-
+func StartServer(port string) {
 	clients := allClients{
 		mu:          sync.Mutex{},
-		connections: map[uint]net.Conn{},
+		connections: map[uint]*websocket.Conn{},
 		index:       0,
 	}
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			fmt.Println(err)
-			continue
-		}
-
-		go handleClient(conn, &clients)
+	if port[0] != ':' {
+		port = ":" + port
 	}
+
+	fmt.Printf("Server is listening on port %s\n", port)
+
+	http.HandleFunc("/chat", clients.chatWebSocketHandler)
+	http.ListenAndServe(port, nil)
 }
 
-func handleClient(conn net.Conn, clients *allClients) {
-	connIndex := clients.index
-	clients.index++
+func (ac *allClients) chatWebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	clients.mu.Lock()
-	clients.connections[connIndex] = conn
-	clients.mu.Unlock()
+	connIndex := ac.index
+	ac.index++
+
+	ac.mu.Lock()
+	ac.connections[connIndex] = conn
+	ac.mu.Unlock()
 
 	defer func() {
-		clients.mu.Lock()
-		delete(clients.connections, connIndex)
-		clients.mu.Unlock()
+		ac.mu.Lock()
+		delete(ac.connections, connIndex)
+		ac.mu.Unlock()
 
 		conn.Close()
 	}()
 
-	reader := bufio.NewReader(conn)
 	for {
-		msg, err := reader.ReadBytes('\n')
+		messageType, message, err := conn.ReadMessage()
 		if err != nil {
-			if err == io.EOF {
-				return
-			}
-
 			fmt.Println(err)
-			continue
+			return
 		}
 
-		handleMessage(msg, clients)
+		handleMessage(message, messageType, ac)
 	}
 }
 
-func handleMessage(msg []byte, clients *allClients) {
+func handleMessage(msg []byte, messageType int, clients *allClients) {
 	clients.mu.Lock()
 	for _, conn := range clients.connections {
-		conn.Write(msg)
+		if err := conn.WriteMessage(messageType, msg); err != nil {
+			fmt.Println(err)
+			continue
+		}
 	}
 	clients.mu.Unlock()
 }
