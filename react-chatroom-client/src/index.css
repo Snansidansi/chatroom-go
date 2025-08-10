@@ -13,6 +13,7 @@
 
 h1 {
   margin: 0.75rem;
+  font-size: 4rem;
 }
 
 ul {
@@ -20,6 +21,7 @@ ul {
   background-color: #2a263c;
   flex: 1;
   padding: 0.25rem;
+  font-size: 2rem;
 }
 
 #user-input-div {
@@ -29,26 +31,29 @@ ul {
   gap: 0.4rem;
 }
 
-#chat-input {
+input {
   flex-grow: 1;
   flex-shrink: 1;
   border-radius: 10px;
   border-color: transparent;
   background-color: #2a263c;
   outline: transparent;
+  font-size: 1.5rem;
+  padding-left: 0.25rem;
 }
 
-#send-button {
+button {
   padding: 0 0.25rem;
   border-radius: 10px;
   border-color: transparent;
   background-color: #2a263c;
+  font-size: 1.5rem;
 }
 
-#send-button:hover {
+button:hover {
   background-color: #474065;
 }
 
-#send-button:active {
+button:active {
   background-color: #61578a;
 }
