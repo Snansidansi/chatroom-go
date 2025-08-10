@@ -57,3 +57,31 @@ button:hover {
 button:active {
   background-color: #61578a;
 }
+
+.popup {
+  height: 100vh;
+  width: 100vw;
+  background-color: rgba(25, 23, 36, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+}
+
+.popup-inner {
+  background-color: #191724;
+  padding: 4rem;
+}
+
+.popup-inner > h1 {
+  padding-bottom: 1.5rem;
+}
+
+.popup-input {
+  display: flex;
+  gap: 10px;
+}
+
+.popup-input > label {
+  font-size: 1.5rem;
+}
