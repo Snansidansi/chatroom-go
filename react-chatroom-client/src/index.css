@@ -1,0 +1,54 @@
+* {
+  margin: 0;
+  padding: 0;
+  color: lightgray;
+}
+
+#main-container {
+  background-color: #191724;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+h1 {
+  margin: 0.75rem;
+}
+
+ul {
+  overflow-y: auto;
+  background-color: #2a263c;
+  flex: 1;
+  padding: 0.25rem;
+}
+
+#user-input-div {
+  height: 2rem;
+  margin: 0.5rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+#chat-input {
+  flex-grow: 1;
+  flex-shrink: 1;
+  border-radius: 10px;
+  border-color: transparent;
+  background-color: #2a263c;
+  outline: transparent;
+}
+
+#send-button {
+  padding: 0 0.25rem;
+  border-radius: 10px;
+  border-color: transparent;
+  background-color: #2a263c;
+}
+
+#send-button:hover {
+  background-color: #474065;
+}
+
+#send-button:active {
+  background-color: #61578a;
+}
