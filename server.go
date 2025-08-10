@@ -9,8 +9,9 @@ import (
 )
 
 type allClients struct {
-	connections []net.Conn
+	connections map[uint]net.Conn
 	mu          sync.Mutex
+	index       uint
 }
 
 func StartServer(ip, port string) error {
@@ -24,8 +25,9 @@ func StartServer(ip, port string) error {
 	fmt.Printf("Server is listening on: %s\n", fullAddress)
 
 	clients := allClients{
-		connections: []net.Conn{},
 		mu:          sync.Mutex{},
+		connections: map[uint]net.Conn{},
+		index:       0,
 	}
 
 	for {
@@ -35,16 +37,25 @@ func StartServer(ip, port string) error {
 			continue
 		}
 
-		clients.mu.Lock()
-		clients.connections = append(clients.connections, conn)
-		clients.mu.Unlock()
-
 		go handleClient(conn, &clients)
 	}
 }
 
 func handleClient(conn net.Conn, clients *allClients) {
-	defer conn.Close()
+	connIndex := clients.index
+	clients.index++
+
+	clients.mu.Lock()
+	clients.connections[connIndex] = conn
+	clients.mu.Unlock()
+
+	defer func() {
+		clients.mu.Lock()
+		delete(clients.connections, connIndex)
+		clients.mu.Unlock()
+
+		conn.Close()
+	}()
 
 	reader := bufio.NewReader(conn)
 	for {
