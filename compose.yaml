@@ -1,0 +1,16 @@
+services:
+  server:
+    build:
+      context: ./server-and-go-client
+    image: chatroom/server
+    container_name: chatroom-server-go
+    ports:
+      - "5000:5000"
+
+  client:
+    build:
+      context: ./react-chatroom-client
+    image: chatroom/client-host
+    container_name: chatroom-client-react
+    ports:
+      - "3000:3000"
