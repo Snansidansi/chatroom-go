@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"net/url"
+	"os"
 	"slices"
 
 	"github.com/gorilla/websocket"
@@ -50,6 +51,11 @@ func (c *client) handleIncommingMessages() {
 	for {
 		err := c.conn.ReadJSON(&msg)
 		if err != nil {
+			if websocket.IsCloseError(err, websocket.CloseAbnormalClosure) {
+				fmt.Println("Server closed")
+				os.Exit(0)
+			}
+			fmt.Println("hier")
 			fmt.Println(err)
 		}
 
