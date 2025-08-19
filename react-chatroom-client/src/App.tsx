@@ -67,7 +67,9 @@ function App() {
       addMessage(msg.Name, msg.Message);
     };
 
-    setConnected(true);
+    chatWSRef.current.onopen = () => {
+      setConnected(true);
+    };
   };
 
   return (
