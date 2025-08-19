@@ -60,6 +60,10 @@ func (ac *allClients) chatWebSocketHandler(w http.ResponseWriter, r *http.Reques
 	for {
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
+			if websocket.IsCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseGoingAway) {
+				fmt.Println("Client disconnected")
+				return
+			}
 			fmt.Println(err)
 			return
 		}
